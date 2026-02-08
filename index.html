@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Trastornos Ácido-Base</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7); /* Slate 800 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: rgba(71, 85, 105, 0.8);
+            border-color: rgba(96, 165, 250, 0.5);
+            transform: translateX(4px);
+        }
+
+        .correct {
+            background-color: #059669 !important; /* Emerald 600 */
+            border-color: #34d399 !important;
+            color: white !important;
+        }
+
+        .incorrect {
+            background-color: #dc2626 !important; /* Red 600 */
+            border-color: #f87171 !important;
+            color: white !important;
+        }
+
+        .progress-bar {
+            transition: width 0.4s ease-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-2xl">
+        <!-- Pantalla del Test -->
+        <div id="quiz-screen">
+            <!-- Header con Progreso -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span id="question-index" class="text-sm font-semibold text-blue-400 uppercase tracking-wider">Pregunta 1 de 26</span>
+                    <div class="flex gap-3">
+                        <span class="text-xs text-green-400 font-bold">Aciertos: <span id="score-correct">0</span></span>
+                        <span class="text-xs text-red-400 font-bold">Errores: <span id="score-incorrect">0</span></span>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div id="progress-fill" class="progress-bar h-full bg-blue-500 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Pregunta -->
+            <div class="glass-card p-8 rounded-3xl mb-6 relative overflow-hidden">
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold mb-8 text-white leading-tight">
+                    Cargando pregunta...
+                </h2>
+                
+                <div id="options-container" class="grid gap-4">
+                    <!-- Opciones dinámicas -->
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button id="next-btn" onclick="quiz.next()" class="hidden bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="result-screen" class="hidden glass-card p-10 rounded-3xl text-center">
+            <h2 class="text-3xl font-bold mb-4 text-white">Resultados Finales</h2>
+            <p class="text-slate-400 mb-8">Trastornos Ácido-Base y Gasometría</p>
+            
+            <div class="flex justify-center gap-4 mb-10">
+                <div class="p-6 bg-slate-900/40 rounded-2xl border border-green-500/30 w-32">
+                    <p class="text-green-500 text-xs font-bold uppercase mb-1">Aciertos</p>
+                    <p id="final-correct" class="text-4xl font-bold text-green-400">0</p>
+                </div>
+                <div class="p-6 bg-slate-900/40 rounded-2xl border border-red-500/30 w-32">
+                    <p class="text-red-500 text-xs font-bold uppercase mb-1">Errores</p>
+                    <p id="final-incorrect" class="text-4xl font-bold text-red-400">0</p>
+                </div>
+            </div>
+            
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-bold transition-all w-full md:w-auto">
+                Reiniciar Test
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "1. ¿Qué porcentaje de pacientes en UCI presentan trastornos ácido-base?", a: ["1 de cada 10", "5 de cada 10", "9 de cada 10", "10 de cada 10"], c: 2 },
+            { q: "2. ¿Cuál es la constante vital que nos informa sobre el pronóstico y curso en los trastornos ácido-base?", a: ["Frecuencia cardíaca", "Presión arterial", "pH sanguíneo", "Saturación de oxígeno"], c: 2 },
+            { q: "3. ¿Qué muestra nos permite analizar los trastornos ácido-base?", a: ["Hemograma", "Gasometría venosa", "Glucemia capilar", "Electrocardiograma"], c: 1 },
+            { q: "4. ¿Cómo se define el equilibrio ácido-base?", a: ["Relación entre O2 y CO2", "Relación entre Cloruro y Bicarbonato", "Relación entre Sodio y Potasio", "Relación entre CO2 y Bicarbonato en sangre"], c: 3 },
+            { q: "5. ¿Qué valores se pueden obtener de una gasometría arterial?", a: ["Presión arterial", "Saturación de oxígeno", "Presión parcial arterial de CO2", "Todos los anteriores"], c: 3 },
+            { q: "6. ¿Cuál es la fórmula para calcular el exceso de base (EB)?", a: ["Usualmente depende de variables de pH y Bicarbonato", "[HCO3-] / PCO2", "pH + PCO2", "Fórmula específica que integra pH y HCO3-"], c: 3 },
+            { q: "7. ¿Qué indica una PCO2 elevada en una gasometría arterial?", a: ["Acidosis respiratoria", "Acidosis metabólica", "Alcalosis respiratoria", "Alcalosis metabólica"], c: 0 },
+            { q: "8. ¿Cuáles son los valores normales de pH sanguíneo?", a: ["6.8 - 7.2", "7.35 - 7.45", "7.5 - 7.6", "7.0 - 7.3"], c: 1 },
+            { q: "9. ¿Cuál es una característica de la acidosis respiratoria?", a: ["Bicarbonato alto", "CO2 bajo", "pH alto", "CO2 alto y bicarbonato bajo"], c: 3 },
+            { q: "10. ¿Qué significa EB (Exceso de Base) en la interpretación de gasometrías?", a: ["Acidosis crítica", "Alcalosis crítica", "Acidosis leve", "Alcalosis moderada"], c: 1 },
+            { q: "11. ¿Cómo se denomina el cambio inicial de la PCO2 o el HCO3?", a: ["Trastorno ácido-base primario", "Trastorno ácido-base compensatorio", "Trastorno ácido-base secundario", "Trastorno ácido-base terciario"], c: 0 },
+            { q: "12. ¿Qué fase implica sólo las compensaciones que pueden actuar rápidamente?", a: ["Fase crónica", "Fase aguda", "Fase secundaria", "Fase primaria"], c: 1 },
+            { q: "13. ¿Cuál es el órgano que participa en la compensación metabólica de los trastornos ácido-base?", a: ["Hígado", "Riñón", "Páncreas", "Pulmones"], c: 1 },
+            { q: "14. ¿Qué trastorno ácido-base se caracteriza por una disminución de la ventilación alveolar?", a: ["Acidosis respiratoria", "Alcalosis respiratoria", "Acidosis metabólica", "Alcalosis metabólica"], c: 0 },
+            { q: "15. ¿Cuál es el tratamiento principal para corregir la hipoventilación en la acidosis respiratoria?", a: ["Administración de bicarbonato", "Inhalar gases ricos en CO2", "Aumento de la ventilación alveolar", "Uso de diuréticos"], c: 2 },
+            { q: "16. ¿Qué fase de la compensación respiratoria tarda de 6 a 10 minutos en completarse?", a: ["Fase aguda", "Fase crónica", "Fase primaria", "Fase secundaria"], c: 0 },
+            { q: "17. ¿Qué trastorno metabólico se caracteriza por la retención de CO2?", a: ["Acidosis metabólica", "Alcalosis metabólica", "Acidosis respiratoria", "Alcalosis respiratoria"], c: 1 },
+            { q: "18. ¿Qué causas pueden provocar hipoventilación?", a: ["Aumento de aldosterona", "Hipertensión endocraneana", "Lesiones medulares", "Ambas b y c son correctas"], c: 3 },
+            { q: "19. ¿Qué condiciones pueden llevar a la hiperventilación?", a: ["Lesiones del sistema nervioso central", "Acidosis metabólica", "Hipotensión arterial", "Trastornos en la transmisión motora"], c: 0 },
+            { q: "20. ¿Cuál es el mecanismo compensatorio en la acidosis metabólica?", a: ["Retención de CO2", "Aumento de la ventilación alveolar", "Aumento de la reabsorción de HCO3", "Eliminación de CO2 (por hiperventilación)"], c: 1 },
+            { q: "21. ¿Cuál es el órgano que participa en la compensación metabólica?", a: ["Riñón", "Pulmón", "Hígado", "Páncreas"], c: 0 },
+            { q: "22. ¿Qué muestra se utiliza para evaluar los trastornos ácido-base?", a: ["Hemograma", "Gasometría venosa", "Electrocardiograma", "Radiografía de tórax"], c: 1 },
+            { q: "23. ¿Qué valores se consideran normales para el pH sanguíneo?", a: ["6.8-7.2", "7.35-7.45", "7.5-7.6", "7.0-7.3"], c: 1 },
+            { q: "24. ¿Cuál es la causa principal de la acidosis respiratoria?", a: ["Disminución de la ventilación alveolar", "Aumento de la reabsorción de CO2", "Pérdida excesiva de bicarbonato", "Hiperventilación alveolar"], c: 0 },
+            { q: "25. ¿Qué trastorno metabólico se caracteriza por la retención de CO2?", a: ["Acidosis metabólica", "Alcalosis metabólica", "Acidosis respiratoria", "Alcalosis respiratoria"], c: 1 },
+            { q: "26. ¿Cuál es el tratamiento para corregir la hipoventilación en la acidosis respiratoria?", a: ["Administración de bicarbonato", "Aumento de la ventilación alveolar", "Inhalación de gases ricos en CO2", "Diálisis"], c: 1 }
+        ];
+
+        class Quiz {
+            constructor() {
+                this.idx = 0;
+                this.correct = 0;
+                this.incorrect = 0;
+                this.isAnswered = false;
+            }
+
+            init() {
+                this.render();
+            }
+
+            render() {
+                this.isAnswered = false;
+                const q = questions[this.idx];
+                document.getElementById('question-index').innerText = `Pregunta ${this.idx + 1} de ${questions.length}`;
+                document.getElementById('question-text').innerText = q.q;
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('progress-fill').style.width = `${((this.idx + 1) / questions.length) * 100}%`;
+                
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+
+                q.a.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn w-full text-left p-5 rounded-2xl font-medium text-slate-200';
+                    btn.innerText = opt;
+                    btn.onclick = () => this.check(i, btn);
+                    container.appendChild(btn);
+                });
+            }
+
+            check(i, btn) {
+                if (this.isAnswered) return;
+                this.isAnswered = true;
+                
+                const correct = questions[this.idx].c;
+                const btns = document.querySelectorAll('.option-btn');
+                
+                if (i === correct) {
+                    this.correct++;
+                    btn.classList.add('correct');
+                    document.getElementById('score-correct').innerText = this.correct;
+                } else {
+                    this.incorrect++;
+                    btn.classList.add('incorrect');
+                    btns[correct].classList.add('correct');
+                    document.getElementById('score-incorrect').innerText = this.incorrect;
+                }
+
+                btns.forEach(b => b.disabled = true);
+                document.getElementById('next-btn').classList.remove('hidden');
+            }
+
+            next() {
+                this.idx++;
+                if (this.idx < questions.length) {
+                    this.render();
+                } else {
+                    this.finish();
+                }
+            }
+
+            finish() {
+                document.getElementById('quiz-screen').classList.add('hidden');
+                const screen = document.getElementById('result-screen');
+                screen.classList.remove('hidden');
+                document.getElementById('final-correct').innerText = this.correct;
+                document.getElementById('final-incorrect').innerText = this.incorrect;
+            }
+        }
+
+        const quiz = new Quiz();
+        window.onload = () => quiz.init();
+    </script>
+</body>
+</html>
